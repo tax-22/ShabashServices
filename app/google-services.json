@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "119470425792",
+    "project_id": "shabash-services",
+    "storage_bucket": "shabash-services.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:119470425792:android:4f82da57e0061907554f25",
+        "android_client_info": {
+          "package_name": "com.example.shabashservices"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "119470425792-kr1e4ulelv9lk6nvfghrdvl7em5jebj6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnWBSZZ8YBLks8EvfUPNQUEzG_kiu5rhA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "119470425792-aaf155rnpi06vfq2sk7tlj97qqog5slg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
