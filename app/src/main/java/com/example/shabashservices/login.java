@@ -1,5 +1,6 @@
 package com.example.shabashservices;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,17 +12,22 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 
 public class login extends AppCompatActivity {
@@ -31,7 +37,8 @@ public class login extends AppCompatActivity {
     ImageButton google;
     private FirebaseAuth mAuth;
     GoogleSignInClient googleSignInClient;
-    FirebaseAuth firebaseAuth;
+
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +46,9 @@ public class login extends AppCompatActivity {
         setContentView(R.layout.login);
         mAuth = FirebaseAuth.getInstance();
         login = findViewById(R.id.login);
+        progressDialog = new ProgressDialog(login.this);
+        progressDialog.setTitle("Log in");
+        progressDialog.setMessage("We are logging you in");
         signup = findViewById(R.id.signup);
         forgotpass = findViewById(R.id.forgotpass);
         uname = findViewById(R.id.uname);
@@ -63,12 +73,14 @@ public class login extends AppCompatActivity {
                     password.requestFocus();
                 }
                 if (!email.isEmpty() && !pass.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    progressDialog.show();
                     mAuth.signInWithEmailAndPassword(email, pass)
                             .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
 
                                     if (task.isSuccessful()) {
+                                        progressDialog.dismiss();
                                         FirebaseUser user = mAuth.getCurrentUser();
                                         SharedPreferences pref = getSharedPreferences("login", MODE_PRIVATE);
                                         SharedPreferences.Editor editor = pref.edit();
@@ -78,7 +90,7 @@ public class login extends AppCompatActivity {
                                         startActivity(login);
                                         finish();
                                     } else {
-
+                                        progressDialog.dismiss();
                                         String errorCode = ((FirebaseAuthException) task.getException()).getErrorCode();
 
                                         switch (errorCode) {
@@ -131,47 +143,55 @@ public class login extends AppCompatActivity {
         google.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                signIn();
+                progressDialog.show();
+                signIn();
             }
         });
     }
 
-//    int RC_SIGN_IN = 40;
-//
-//    private void signIn() {
-//        Intent intent = googleSignInClient.getSignInIntent();
-//        startActivityForResult(intent, RC_SIGN_IN);
-//    }
-//
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == RC_SIGN_IN) {
-//            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-//            try {
-//                GoogleSignInAccount account = task.getResult(ApiException.class);
-//                firebaseAuth(account.getIdToken());
-//            } catch (ApiException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
+    int RC_SIGN_IN = 40;
 
-//    public void firebaseAuth(String idToken) {
-//        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-//        mAuth.signInWithCredential(credential)
-//                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<AuthResult> task) {
-//                        if (task.isSuccessful()) {
+    private void signIn() {
+        Intent intent = googleSignInClient.getSignInIntent();
+        startActivityForResult(intent, RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuth(account.getIdToken());
+            } catch (ApiException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void firebaseAuth(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            progressDialog.dismiss();
 //                            FirebaseUser user = mAuth.getCurrentUser();
-//                            Intent intent = new Intent(login.this, consumerhome.class);
-//                            startActivity(intent);
-//                        } else {
-//                            Toast.makeText(login.this, "error", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                });
-//    }
+                            SharedPreferences pref = getSharedPreferences("login", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = pref.edit();
+                            editor.putBoolean("flag", true);
+                            editor.apply();
+                            Intent intent = new Intent(login.this, consumerhome.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            progressDialog.dismiss();
+                            Toast.makeText(login.this, "error", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
 }
 

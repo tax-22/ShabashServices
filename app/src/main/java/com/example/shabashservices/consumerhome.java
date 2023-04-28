@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -25,26 +24,17 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.navigation.NavigationView;
 
 public class consumerhome extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     DrawerLayout drawer;
     NavigationView navigation;
     Toolbar tool;
-    private static final int REQ_CODE=200;
-    int LOCATION_PERMISSION_CODE=1;
+    int LOCATION_PERMISSION_CODE = 1;
+    final static String PACKAGE_NAME = "com.example.shabashservices";
 
-    String PACKAGE_NAME="com.example.shabashservices";
-    String Scheme="package";
-
-//    FirebaseAuth firebaseAuth;
+    //    FirebaseAuth firebaseAuth;
 //    FirebaseUser firebaseUser;
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,44 +59,26 @@ public class consumerhome extends AppCompatActivity implements NavigationView.On
             getSupportFragmentManager().beginTransaction().add(R.id.newhome, new home()).commit();
             navigation.setCheckedItem(R.id.home);
         }
-        if(ContextCompat.checkSelfPermission(consumerhome.this, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED&&ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "Pemission Granted", Toast.LENGTH_SHORT).show();
-        }else{
+        if (ContextCompat.checkSelfPermission(consumerhome.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestLocation();
         }
-
     }
-    private void requestLocation(){
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_FINE_LOCATION)&&ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_COARSE_LOCATION)){
-            new AlertDialog.Builder(this)
-                    .setTitle("Permission needed")
-                    .setMessage("Allow Permission")
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-//                            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                            Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                            intent.setData(Uri.parse("package:" + PACKAGE_NAME));
-                            startActivity(intent);
 
-                        }
-                    }).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                        }
-                    }).create().show();
-        }else{
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},LOCATION_PERMISSION_CODE);
+    private void requestLocation() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION) && ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            onDeniedPermission();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_CODE);
         }
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode==LOCATION_PERMISSION_CODE){
-            if(grantResults.length>0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
-            }else {
-                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+        if (requestCode == LOCATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+
+            } else {
+                onDeniedPermission();
             }
         }
 
@@ -132,7 +104,7 @@ public class consumerhome extends AppCompatActivity implements NavigationView.On
             logoutdialo.setTitle("Logout");
             logoutdialo.setIcon(R.drawable.baseline_logout_24);
             logoutdialo.setMessage("Are you sure want to logout");
-            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN);
+//            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN);
             logoutdialo.setPositiveButton("YES", (dialogInterface, i) -> {
                 SharedPreferences pref = getSharedPreferences("login", MODE_PRIVATE);
                 SharedPreferences.Editor editor = pref.edit();
@@ -149,13 +121,11 @@ public class consumerhome extends AppCompatActivity implements NavigationView.On
 //                        }
 //                    }
 //                });
-
             });
             logoutdialo.setNegativeButton("NO", (dialogInterface, i) -> {
 
             });
             logoutdialo.show();
-
         } else if (id == R.id.home) {
             loadFragment(new home(), 1);
         }
@@ -194,6 +164,25 @@ public class consumerhome extends AppCompatActivity implements NavigationView.On
         return super.onOptionsItemSelected(item);
     }
 
+    private void onDeniedPermission(){
+        new AlertDialog.Builder(this)
+                .setTitle("Permission needed")
+                .setMessage("Allow Permission")
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+//                            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.setData(Uri.parse("package:" + PACKAGE_NAME));
+                        startActivity(intent);
+                    }
+                }).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                }).create().show();
+    }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -203,6 +192,4 @@ public class consumerhome extends AppCompatActivity implements NavigationView.On
         navigation.setCheckedItem(R.id.home);
 
     }
-
-
 }
